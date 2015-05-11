@@ -1,9 +1,6 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
+# Step Analysis over a Two Month Period
+
 ## Synopsis
 This is an analysis of data collected from someone who walked a lot.
 Using a personal fitness device such as a Fitbit or Fuelband or Jawbone.  The number of steps that they took was recorded at 5 minute intervals, during October and November 2012.  A zipped copy of the data can be found [here](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip).  We know that there are three columns: steps, date, and interval, showing the number of steps, the day the measurement was taken, and the time interval the measurement was taken.
@@ -56,12 +53,12 @@ sample_n(veryRawData, size=6, replace=FALSE)
 
 ```
 ##       steps       date interval
-## 9373      0 2012-11-02     1300
-## 7058      0 2012-10-25     1205
-## 6699      0 2012-10-24      610
-## 15360     0 2012-11-23      755
-## 4518      0 2012-10-16     1625
-## 14424     0 2012-11-20      155
+## 3887      0 2012-10-14     1150
+## 8997     NA 2012-11-01      540
+## 2284     NA 2012-10-08     2215
+## 15160     0 2012-11-22     1515
+## 15567     0 2012-11-24      110
+## 14836     0 2012-11-21     1215
 ```
 From this, we can see that there are about 2300 intervals where no measurement was taken. Also, we can see that the "interval" column is basically military time; in other words, it counts by 5 to 55 and then goes back to 00.
 
@@ -116,7 +113,7 @@ ggplot(stepsPerDay)+
   xlab("Total Number of Steps per Day")
 ```
 
-![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-8.png) 
+![plot of chunk plotStepsPerDay](PA1_template_files/figure-html/plotStepsPerDay.png) 
 
 
 Finally, we'll take the mean and median of that column to reveal the average number of steps each day
@@ -159,7 +156,7 @@ ggplot()+
   theme(axis.text.x=element_text(angle=45))
 ```
 
-![plot of chunk unnamed-chunk-12](figure/unnamed-chunk-12.png) 
+![plot of chunk plotStepsPerInterval](PA1_template_files/figure-html/plotStepsPerInterval.png) 
 
 
 As can be seen, on average, there are almost no steps from midnight to 5:30 or so there's a morning peak a little before 9am, the rest of the day goes back and forth between about 25 and about 100 steps per interval until about 8pm, when the user begins to take fewer and fewer steps until midnight
@@ -255,7 +252,7 @@ ggplot(imputedStepsPerDay)+
   xlab("Total Number of Steps per Day")
 ```
 
-![plot of chunk unnamed-chunk-18](figure/unnamed-chunk-18.png) 
+![plot of chunk plotISPD](PA1_template_files/figure-html/plotISPD.png) 
 
 
 Again, we can calculate the mean and median of the data, this time with the imputed data included.
@@ -290,9 +287,9 @@ processedData <- mutate(processedData,
 From there, we'll create a dataframe for the means by weekend or weekday. We'll also put in the graphing interval.
 
 ```r
-newGraphData <- data.frame(summarise(group_by(processedData, weekend, interval),mean(steps)))
-colnames(newGraphData)<-  c("weekend","interval","averageSteps")
-newGraphData <- mutate(newGraphData, graphingInterval=(((interval%/%100)*100)+((interval%%100)*5/3)))
+typeOfDayData <- data.frame(summarise(group_by(processedData, weekend, interval),mean(steps)))
+colnames(typeOfDayData)<-  c("weekend","interval","averageSteps")
+typeOfDayData <- mutate(typeOfDayData, graphingInterval=(((interval%/%100)*100)+((interval%%100)*5/3)))
 ```
 
 Now, we can graph the weekends against the weekdays.
@@ -300,7 +297,7 @@ Now, we can graph the weekends against the weekdays.
 
 
 ```r
-ggplot(newGraphData)+
+ggplot(typeOfDayData)+
   facet_grid(weekend~.)+
   geom_line(aes(x=graphingInterval, y=averageSteps))+
   ggtitle("Average Number of Steps v. Interval")+
@@ -310,6 +307,6 @@ ggplot(newGraphData)+
   theme(axis.text.x=element_text(angle=45))
 ```
 
-![plot of chunk unnamed-chunk-23](figure/unnamed-chunk-23.png) 
+![plot of chunk graphWeekendData](PA1_template_files/figure-html/graphWeekendData.png) 
 
 It looks like on average, there's more activity on weekday early mornings from 5:30am until about 10am.  After that, the weekends are more volatile, but still generally higher than the weekdays.  The weekends also continue to have more steps later on in the evening than the weekdays.

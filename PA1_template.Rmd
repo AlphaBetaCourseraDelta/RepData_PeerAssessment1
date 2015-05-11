@@ -4,13 +4,15 @@ output:
   html_document:
     keep_md: true
 ---
+# Step Analysis over a Two Month Period
+
 ## Synopsis
 This is an analysis of data collected from someone who walked a lot.
 Using a personal fitness device such as a Fitbit or Fuelband or Jawbone.  The number of steps that they took was recorded at 5 minute intervals, during October and November 2012.  A zipped copy of the data can be found [here](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip).  We know that there are three columns: steps, date, and interval, showing the number of steps, the day the measurement was taken, and the time interval the measurement was taken.
 
 ## Loading and preprocessing the data
 First, I'm adding the libraries needed to process the data.
-```{r, message=FALSE, warning=FALSE}
+```{r libraryLoad, message=FALSE, warning=FALSE}
 library(plyr)
 library(dplyr)
 library(lubridate)
@@ -19,12 +21,12 @@ library(ggplot2)
 
 Next, we bring in the file, which is unzipped and in the working directory.  I specify that there is a header.
 
-```{r, echo=TRUE}
+```{r getRawData, echo=TRUE}
 veryRawData <- read.csv("activity.csv", header=TRUE, na.strings="NA")
 ```
 
 After reading in the data, we look at the summary and take a glance at a few random rows to see what it looks like.
-```{r, echo=TRUE}
+```{r examineRawData, echo=TRUE}
 dim(veryRawData)
 summary(veryRawData)
 sample_n(veryRawData, size=6, replace=FALSE)
@@ -33,19 +35,19 @@ From this, we can see that there are about 2300 intervals where no measurement w
 
 So, to process it, we'll strip the lines with NA, make the date column a date, and because we've read ahead, create a column for the day of the week and whether it is a weekday or weekend.
 
-```{r, echo=TRUE}
+```{r createProcessedDF, echo=TRUE}
 processedData <- veryRawData %>% filter(!is.na(steps)) %>% mutate(date = as.Date(date))%>% mutate(dayOfWeek=wday(date))
 ```
 
 Also, because of the military time, we'll create a column called "graphingInterval" that will evenly space the intervals instead of putting a weird gap between 55 and 00.
 
-```{r, echo=TRUE}
+```{r updateProcessedDF, echo=TRUE}
 processedData <- mutate(processedData, graphingInterval=(((interval%/%100)*100)+((interval%%100)*5/3)))
 ```
 
 The data now looks like this:
 
-```{r, echo=TRUE}
+```{r examineProcessedDF, echo=TRUE}
 head(processedData)
 ```
 
@@ -53,14 +55,14 @@ And we're able to begin answering the remainder of the questions.
 
 ## What is mean total number of steps taken per day?
 To answer this, we're going to create a data frame that will consist of two columns, the date and the total number of steps taken that day.
-```{r, echo=TRUE}
+```{r caculateStepsPerDay, echo=TRUE}
 stepsPerDay <- (summarise(group_by(processedData, date), sum(steps)))
 
 colnames(stepsPerDay) <- c("date","totalsteps")
 ```
 
 Next, we'll plot a quick histogram of the number of steps for each day, so that we can visualize where the averages lie
-```{r, echo=TRUE, results='hide'}
+```{r plotStepsPerDay, echo=TRUE, results='hide'}
 ggplot(stepsPerDay)+
   geom_histogram(data=stepsPerDay, aes(x=totalsteps))+
   ggtitle("Histogram of the Total Number of Steps per Day")+
@@ -71,7 +73,7 @@ dev.off()
 ```
 
 Finally, we'll take the mean and median of that column to reveal the average number of steps each day
-```{r, echo=TRUE}
+```{r stepsPerDayStats, echo=TRUE}
 mean(stepsPerDay$totalsteps)
 median(stepsPerDay$totalsteps)
 ```
@@ -79,14 +81,14 @@ median(stepsPerDay$totalsteps)
 ## What is the average daily activity pattern?
 To answer this question, we're going to create a data frame that finds the average number of steps for each interval. First, we'll group by the interval and create a column of the average number of steps for that interval.  Also, as above, we'll add a graphing interval. This will remove distortions from the graph. 
 
-```{r, echo=TRUE}
+```{r calculateStepsPerInterval, echo=TRUE}
 stepsPerInterval <- data.frame(summarise(group_by(processedData, interval), mean(steps)))
 colnames(stepsPerInterval) <- c("interval","averageSteps")
 stepsPerInterval <- mutate(stepsPerInterval, graphingInterval=(((interval%/%100)*100)+((interval%%100)*5/3)))
 ```
 
 We're now going to graph the average number of steps for each interval
-```{r, echo=TRUE}
+```{r plotStepsPerInterval, echo=TRUE}
 ggplot()+
   geom_line(data=stepsPerInterval, aes(x=graphingInterval, y=averageSteps))+
   ggtitle("Average Number of Steps v. Interval")+
@@ -102,19 +104,19 @@ dev.off()
 As can be seen, on average, there are almost no steps from midnight to 5:30 or so there's a morning peak a little before 9am, the rest of the day goes back and forth between about 25 and about 100 steps per interval until about 8pm, when the user begins to take fewer and fewer steps until midnight
 
 We can also find which interval has the highest average.
-```{r, echo=TRUE}
+```{r stepsPerIntervalStats, echo=TRUE}
 stepsPerInterval[which(stepsPerInterval$averageSteps==max(stepsPerInterval$averageSteps)),]$interval
 ```
 It looks like it is 8:35, or slightly before 9am as we can see on the graph.
 
 ## Imputing missing values
 As we saw above, there were 2304 rows with a missing value. First, we'll take a quick look to see how those missing values are distributed
-```{r, echo=TRUE}
+```{r exploreMissingVariables, echo=TRUE}
 table(is.na(veryRawData$steps),veryRawData$date)
 ```
 The table shows that either all the values for that day are missing or none of them are. So to fill in those missing values, we'll use the average for that interval.
 
-```{r, echo=TRUE}
+```{r createCopywithImputedData, echo=TRUE}
 imputedData <- veryRawData %>%
   mutate(date = as.Date(date)) %>%
   mutate(SPIIndex=(interval%/%100)*12+(interval%%100)/5+1) %>%
@@ -123,13 +125,13 @@ imputedData <- veryRawData %>%
 ```
 
 We'll now create a "stepsPerDay" data frame of the imputed Data
-```{r, echo=TRUE}
+```{r createISPD, echo=TRUE}
 imputedStepsPerDay <- (summarise(group_by(imputedData, date), sum(steps)))
 colnames(imputedStepsPerDay) <- c("date","totalsteps")
 ```
 
 And we'll use that to plot a quick histogram of the number of steps for each day, so that we can visualize where the averages lie
-```{r, echo=TRUE, results='hide'}
+```{r plotISPD, echo=TRUE, results='hide'}
 ggplot(imputedStepsPerDay)+
   geom_histogram(aes(x=totalsteps))+
   ggtitle("Histogram of the Total Number of Steps per Day Using Imputed Data")+
@@ -141,7 +143,7 @@ dev.off()
 
 Again, we can calculate the mean and median of the data, this time with the imputed data included.
 
-```{r, echo=TRUE}
+```{r viewISPDstats, echo=TRUE}
 mean(imputedStepsPerDay$totalsteps)
 median(imputedStepsPerDay$totalsteps)
 ```
@@ -151,23 +153,23 @@ As expected, it's almost the same as without the imputed data.  That's because t
 ## Are there differences in activity patterns between weekdays and weekends?
 
 To see this, we're going to create a new column called "Weekend". If the day is a weekend, it will be true. If it is false, it will be false.
-```{r, echo=TRUE}
+```{r weekendData, echo=TRUE}
 processedData <- mutate(processedData,
                         weekend = ifelse(dayOfWeek%in%c(1,7),"Weekend","Weekday"))
 
 ``` 
 From there, we'll create a dataframe for the means by weekend or weekday. We'll also put in the graphing interval.
-```{r, echo=TRUE}
-newGraphData <- data.frame(summarise(group_by(processedData, weekend, interval),mean(steps)))
-colnames(newGraphData)<-  c("weekend","interval","averageSteps")
-newGraphData <- mutate(newGraphData, graphingInterval=(((interval%/%100)*100)+((interval%%100)*5/3)))
+```{r moreWeekendData, echo=TRUE}
+typeOfDayData <- data.frame(summarise(group_by(processedData, weekend, interval),mean(steps)))
+colnames(typeOfDayData)<-  c("weekend","interval","averageSteps")
+typeOfDayData <- mutate(typeOfDayData, graphingInterval=(((interval%/%100)*100)+((interval%%100)*5/3)))
 ```
 
 Now, we can graph the weekends against the weekdays.
 
 
-```{r, echo=TRUE}
-ggplot(newGraphData)+
+```{r graphWeekendData, echo=TRUE}
+ggplot(typeOfDayData)+
   facet_grid(weekend~.)+
   geom_line(aes(x=graphingInterval, y=averageSteps))+
   ggtitle("Average Number of Steps v. Interval")+
