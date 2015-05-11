@@ -1,4 +1,9 @@
-# Reproducible Research: Peer Assessment 1
+---
+title: "Reproducible Research: Peer Assessment 1"
+output: 
+  html_document:
+    keep_md: true
+---
 # Step Analysis over a Two Month Period
 
 ## Synopsis
@@ -53,12 +58,12 @@ sample_n(veryRawData, size=6, replace=FALSE)
 
 ```
 ##       steps       date interval
-## 3887      0 2012-10-14     1150
-## 8997     NA 2012-11-01      540
-## 2284     NA 2012-10-08     2215
-## 15160     0 2012-11-22     1515
-## 15567     0 2012-11-24      110
-## 14836     0 2012-11-21     1215
+## 8998     NA 2012-11-01      545
+## 15694     0 2012-11-24     1145
+## 16508   189 2012-11-27      735
+## 9440     55 2012-11-02     1835
+## 11634    NA 2012-11-10      925
+## 8679      0 2012-10-31      310
 ```
 From this, we can see that there are about 2300 intervals where no measurement was taken. Also, we can see that the "interval" column is basically military time; in other words, it counts by 5 to 55 and then goes back to 00.
 
@@ -113,7 +118,7 @@ ggplot(stepsPerDay)+
   xlab("Total Number of Steps per Day")
 ```
 
-![plot of chunk plotStepsPerDay](PA1_template_files/figure-html/plotStepsPerDay.png) 
+![plot of chunk plotStepsPerDay](figure/plotStepsPerDay.png) 
 
 
 Finally, we'll take the mean and median of that column to reveal the average number of steps each day
@@ -156,7 +161,7 @@ ggplot()+
   theme(axis.text.x=element_text(angle=45))
 ```
 
-![plot of chunk plotStepsPerInterval](PA1_template_files/figure-html/plotStepsPerInterval.png) 
+![plot of chunk plotStepsPerInterval](figure/plotStepsPerInterval.png) 
 
 
 As can be seen, on average, there are almost no steps from midnight to 5:30 or so there's a morning peak a little before 9am, the rest of the day goes back and forth between about 25 and about 100 steps per interval until about 8pm, when the user begins to take fewer and fewer steps until midnight
@@ -252,7 +257,7 @@ ggplot(imputedStepsPerDay)+
   xlab("Total Number of Steps per Day")
 ```
 
-![plot of chunk plotISPD](PA1_template_files/figure-html/plotISPD.png) 
+![plot of chunk plotISPD](figure/plotISPD.png) 
 
 
 Again, we can calculate the mean and median of the data, this time with the imputed data included.
@@ -307,6 +312,6 @@ ggplot(typeOfDayData)+
   theme(axis.text.x=element_text(angle=45))
 ```
 
-![plot of chunk graphWeekendData](PA1_template_files/figure-html/graphWeekendData.png) 
+![plot of chunk graphWeekendData](figure/graphWeekendData.png) 
 
 It looks like on average, there's more activity on weekday early mornings from 5:30am until about 10am.  After that, the weekends are more volatile, but still generally higher than the weekdays.  The weekends also continue to have more steps later on in the evening than the weekdays.
