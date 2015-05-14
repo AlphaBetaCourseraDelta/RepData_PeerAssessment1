@@ -8,7 +8,7 @@ output:
 
 ## Synopsis
 This is an analysis of data collected from someone who walked a lot.
-Using a personal fitness device such as a Fitbit or Fuelband or Jawbone.  The number of steps that they took was recorded at 5 minute intervals, during October and November 2012.  A zipped copy of the data can be found [here](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip).  We know that there are three columns: steps, date, and interval, showing the number of steps, the day the measurement was taken, and the time interval the measurement was taken.
+Using a personal fitness device such as a Fitbit or Fuelband or Jawbone, the number of steps that they took was recorded at 5 minute intervals during October and November 2012.  A zipped copy of the data can be found [here](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip).  We know that there are three columns: steps, date, and interval, showing the number of steps, the day the measurement was taken, and the time interval the measurement was taken.
 
 ## Loading and preprocessing the data
 First, I'm adding the libraries needed to process the data.
@@ -20,8 +20,9 @@ library(lubridate)
 library(ggplot2)
 ```
 
-Next, we bring in the file, which is unzipped and in the working directory.  I specify that there is a header.
 
+###1. Load the data (i.e., read.csv())
+Next, we bring in the file, which is unzipped and in the working directory. The data is in an unzipped file in the working directory. I specify that there is a header.
 
 ```r
 veryRawData <- read.csv("activity.csv", header=TRUE, na.strings="NA")
@@ -58,23 +59,25 @@ sample_n(veryRawData, size=6, replace=FALSE)
 
 ```
 ##       steps       date interval
-## 8998     NA 2012-11-01      545
-## 15694     0 2012-11-24     1145
-## 16508   189 2012-11-27      735
-## 9440     55 2012-11-02     1835
-## 11634    NA 2012-11-10      925
-## 8679      0 2012-10-31      310
+## 10735   120 2012-11-07      630
+## 5752      0 2012-10-20     2315
+## 5683      0 2012-10-20     1730
+## 13168     0 2012-11-15     1715
+## 2784     13 2012-10-10     1555
+## 16413     0 2012-11-26     2340
 ```
 From this, we can see that there are about 2300 intervals where no measurement was taken. Also, we can see that the "interval" column is basically military time; in other words, it counts by 5 to 55 and then goes back to 00.
 
-So, to process it, we'll strip the lines with NA, make the date column a date, and because we've read ahead, create a column for the day of the week and whether it is a weekday or weekend.
+### 2. Process/transform the data (if necessary) into a format suitable for your analysis
+
+To process the data, we strip the lines with NA, make the date column a date, and because we've read ahead, create a column for the day of the week and whether it is a weekday or weekend.
 
 
 ```r
 processedData <- veryRawData %>% filter(!is.na(steps)) %>% mutate(date = as.Date(date))%>% mutate(dayOfWeek=wday(date))
 ```
 
-Also, because of the military time, we'll create a column called "graphingInterval" that will evenly space the intervals instead of putting a weird gap between 55 and 00.
+Also, because of the military time, we create a column called "graphingInterval" that will evenly space the intervals instead of putting a weird gap between 55 and 00.
 
 
 ```r
@@ -101,27 +104,46 @@ head(processedData)
 And we're able to begin answering the remainder of the questions.
 
 ## What is mean total number of steps taken per day?
+
+### 1. Calculate the total number of steps taken per day
 To answer this, we're going to create a data frame that will consist of two columns, the date and the total number of steps taken that day.
 
 ```r
 stepsPerDay <- (summarise(group_by(processedData, date), sum(steps)))
-
 colnames(stepsPerDay) <- c("date","totalsteps")
+sample_n(stepsPerDay,5)
 ```
 
-Next, we'll plot a quick histogram of the number of steps for each day, so that we can visualize where the averages lie
+```
+## Source: local data frame [5 x 2]
+## 
+##         date totalsteps
+## 1 2012-11-03      10571
+## 2 2012-11-07      12883
+## 3 2012-10-14      15098
+## 4 2012-11-23      21194
+## 5 2012-11-28      10183
+```
+As you can see, the number of steps each day has been calculated.
+
+### 2. Make a histogram of the total number of steps taken each day
+
+Next, we plot a quick histogram of the number of steps for each day, so that we can visualize where the averages lie (we also put a blue line at the mean and a red line at the median to make visualization even easier.)
 
 ```r
 ggplot(stepsPerDay)+
-  geom_histogram(data=stepsPerDay, aes(x=totalsteps))+
+  geom_histogram(aes(x=totalsteps))+
   ggtitle("Histogram of the Total Number of Steps per Day")+
-  xlab("Total Number of Steps per Day")
+  xlab("Total Number of Steps per Day")+
+  geom_vline(xintercept=mean(stepsPerDay$totalsteps),color="#0000FF",linetype="dashed")+
+  geom_vline(xintercept=median(stepsPerDay$totalsteps),color="#FF0000", linetype="dotted")
 ```
 
 ![plot of chunk plotStepsPerDay](figure/plotStepsPerDay.png) 
+![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-1.png) 
 
-
-Finally, we'll take the mean and median of that column to reveal the average number of steps each day
+### 3. Calculate and report the mean and median of the total number of steps taken per day
+Finally, we take the mean and median of that column to reveal the average number of steps each day
 
 ```r
 mean(stepsPerDay$totalsteps)
@@ -140,7 +162,10 @@ median(stepsPerDay$totalsteps)
 ```
 
 ## What is the average daily activity pattern?
-To answer this question, we're going to create a data frame that finds the average number of steps for each interval. First, we'll group by the interval and create a column of the average number of steps for that interval.  Also, as above, we'll add a graphing interval. This will remove distortions from the graph. 
+
+### 1. Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+
+To answer this question, we're going to create a data frame that finds the average number of steps for each interval. First, we group by the interval and create a column of the average number of steps for that interval.  Also, as above, we add a graphing interval. This will remove distortions from the graph. 
 
 
 ```r
@@ -163,8 +188,10 @@ ggplot()+
 
 ![plot of chunk plotStepsPerInterval](figure/plotStepsPerInterval.png) 
 
-
+![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2.png) 
 As can be seen, on average, there are almost no steps from midnight to 5:30 or so there's a morning peak a little before 9am, the rest of the day goes back and forth between about 25 and about 100 steps per interval until about 8pm, when the user begins to take fewer and fewer steps until midnight
+
+### 2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 
 We can also find which interval has the highest average.
 
@@ -178,7 +205,30 @@ stepsPerInterval[which(stepsPerInterval$averageSteps==max(stepsPerInterval$avera
 It looks like it is 8:35, or slightly before 9am as we can see on the graph.
 
 ## Imputing missing values
-As we saw above, there were 2304 rows with a missing value. First, we'll take a quick look to see how those missing values are distributed
+
+### 1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
+We saw this earlier.  But we can look at the summary of the original data again:
+
+```r
+summary(veryRawData)
+```
+
+```
+##      steps               date          interval   
+##  Min.   :  0.0   2012-10-01:  288   Min.   :   0  
+##  1st Qu.:  0.0   2012-10-02:  288   1st Qu.: 589  
+##  Median :  0.0   2012-10-03:  288   Median :1178  
+##  Mean   : 37.4   2012-10-04:  288   Mean   :1178  
+##  3rd Qu.: 12.0   2012-10-05:  288   3rd Qu.:1766  
+##  Max.   :806.0   2012-10-06:  288   Max.   :2355  
+##  NA's   :2304    (Other)   :15840
+```
+There are 2304 rows with a missing value.
+
+### 2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
+
+
+First, we take a quick look to see how those missing values are distributed
 
 ```r
 table(is.na(veryRawData$steps),veryRawData$date)
@@ -230,35 +280,55 @@ table(is.na(veryRawData$steps),veryRawData$date)
 ##   FALSE          0
 ##   TRUE         288
 ```
-The table shows that either all the values for that day are missing or none of them are. So to fill in those missing values, we'll use the average for that interval.
+The table shows that either all the values for that day are missing or none of them are. So to fill in those missing values, we use the average for that interval.
+
+### 3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
 
 
 ```r
-imputedData <- veryRawData %>%
-  mutate(date = as.Date(date)) %>%
-  mutate(SPIIndex=(interval%/%100)*12+(interval%%100)/5+1) %>%
-  mutate(intervalAverage=stepsPerInterval[SPIIndex,2])%>%
-  mutate(steps=ifelse(is.na(steps),intervalAverage,steps))
+imputedData <- veryRawData %>% mutate(date=as.Date(date))
+imputedData <- merge(x=imputedData, y= stepsPerInterval, by.x="interval", by.y="interval", all.x=TRUE)
+imputedData <- imputedData %>%
+  mutate(steps = ifelse(is.na(steps),averageSteps,steps)) %>%
+  select(-averageSteps) %>%
+  arrange(date,interval)
+summary(imputedData)
 ```
 
-We'll now create a "stepsPerDay" data frame of the imputed Data
+```
+##     interval        steps            date            graphingInterval
+##  Min.   :   0   Min.   :  0.0   Min.   :2012-10-01   Min.   :   0    
+##  1st Qu.: 589   1st Qu.:  0.0   1st Qu.:2012-10-16   1st Qu.: 598    
+##  Median :1178   Median :  0.0   Median :2012-10-31   Median :1196    
+##  Mean   :1178   Mean   : 37.4   Mean   :2012-10-31   Mean   :1196    
+##  3rd Qu.:1766   3rd Qu.: 27.0   3rd Qu.:2012-11-15   3rd Qu.:1794    
+##  Max.   :2355   Max.   :806.0   Max.   :2012-11-30   Max.   :2392
+```
+In the summary, we can see that this new imputedData dataframe has all intervals with missing data filled in as there are no NAs in the "interval" column.
+
+### 4. Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+
+
+We now create a "stepsPerDay" data frame of the imputed Data
 
 ```r
 imputedStepsPerDay <- (summarise(group_by(imputedData, date), sum(steps)))
 colnames(imputedStepsPerDay) <- c("date","totalsteps")
 ```
 
-And we'll use that to plot a quick histogram of the number of steps for each day, so that we can visualize where the averages lie
+And we use that to plot a quick histogram of the number of steps for each day, so that we can visualize where the averages lie, again putting vertical lines at the mean and median.
 
 ```r
 ggplot(imputedStepsPerDay)+
   geom_histogram(aes(x=totalsteps))+
   ggtitle("Histogram of the Total Number of Steps per Day Using Imputed Data")+
-  xlab("Total Number of Steps per Day")
+  xlab("Total Number of Steps per Day")+
+  geom_vline(xintercept=mean(imputedStepsPerDay$totalsteps),color="#0000FF",linetype="dashed")+
+  geom_vline(xintercept=median(imputedStepsPerDay$totalsteps),color="#FF0000", linetype="dotted")
 ```
 
 ![plot of chunk plotISPD](figure/plotISPD.png) 
-
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4.png) 
 
 Again, we can calculate the mean and median of the data, this time with the imputed data included.
 
@@ -279,17 +349,24 @@ median(imputedStepsPerDay$totalsteps)
 ## [1] 10766
 ```
 
-As expected, it's almost the same as without the imputed data.  That's because the real data was pretty normal, and centered around the median.  Adding a bunch of average data isn't going to change the average and will move the median (which was already very close to the mean) closer to the mean. 
+As expected, they're almost the same as without the imputed data.  That's because the real data was pretty normal, and centered around the median.  Adding a bunch of average data isn't going to change the average and will move the median (which was already very close to the mean) closer to the mean. 
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-To see this, we're going to create a new column called "Weekend". If the day is a weekend, it will be true. If it is false, it will be false.
+### 1. Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
+
+Because the imputed data did not take day of the week into account, we're going back to the data frame that dropped the unavailable data to answer this question. Using that data frame, we're going to create a new column called "Weekend". If the day is a weekend, "Weekend". If it is a weekday, it will be "Weekday".
+
 
 ```r
 processedData <- mutate(processedData,
-                        weekend = ifelse(dayOfWeek%in%c(1,7),"Weekend","Weekday"))
+                        weekend = as.factor(ifelse(dayOfWeek%in%c(1,7),"Weekend","Weekday")))
 ```
-From there, we'll create a dataframe for the means by weekend or weekday. We'll also put in the graphing interval.
+
+
+### 2. Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
+
+From there, we create a dataframe for the means by weekend or weekday. we also put in the graphing interval.
 
 ```r
 typeOfDayData <- data.frame(summarise(group_by(processedData, weekend, interval),mean(steps)))
@@ -313,5 +390,5 @@ ggplot(typeOfDayData)+
 ```
 
 ![plot of chunk graphWeekendData](figure/graphWeekendData.png) 
-
+![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5.png) 
 It looks like on average, there's more activity on weekday early mornings from 5:30am until about 10am.  After that, the weekends are more volatile, but still generally higher than the weekdays.  The weekends also continue to have more steps later on in the evening than the weekdays.
