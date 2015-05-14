@@ -7,10 +7,13 @@ output:
 # Step Analysis over a Two Month Period
 
 ## Synopsis
-This is an analysis of data collected from someone who walked a lot.
+
+An analysis of data collected from someone who walked a lot.
+
 Using a personal fitness device such as a Fitbit or Fuelband or Jawbone, the number of steps that they took was recorded at 5 minute intervals during October and November 2012.  A zipped copy of the data can be found [here](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip).  We know that there are three columns: steps, date, and interval, showing the number of steps, the day the measurement was taken, and the time interval the measurement was taken.
 
 ## Loading and preprocessing the data
+
 First, I'm adding the libraries needed to process the data.
 
 ```r
@@ -22,6 +25,7 @@ library(ggplot2)
 
 
 ###1. Load the data (i.e., read.csv())
+
 Next, we bring in the file, which is unzipped and in the working directory. The data is in an unzipped file in the working directory. I specify that there is a header.
 
 ```r
@@ -59,12 +63,12 @@ sample_n(veryRawData, size=6, replace=FALSE)
 
 ```
 ##       steps       date interval
-## 10735   120 2012-11-07      630
-## 5752      0 2012-10-20     2315
-## 5683      0 2012-10-20     1730
-## 13168     0 2012-11-15     1715
-## 2784     13 2012-10-10     1555
-## 16413     0 2012-11-26     2340
+## 1935    523 2012-10-07     1710
+## 10464   372 2012-11-06      755
+## 15842     0 2012-11-25        5
+## 1283      0 2012-10-05     1050
+## 5209      0 2012-10-19      200
+## 12443     0 2012-11-13      450
 ```
 From this, we can see that there are about 2300 intervals where no measurement was taken. Also, we can see that the "interval" column is basically military time; in other words, it counts by 5 to 55 and then goes back to 00.
 
@@ -106,6 +110,7 @@ And we're able to begin answering the remainder of the questions.
 ## What is mean total number of steps taken per day?
 
 ### 1. Calculate the total number of steps taken per day
+
 To answer this, we're going to create a data frame that will consist of two columns, the date and the total number of steps taken that day.
 
 ```r
@@ -118,11 +123,11 @@ sample_n(stepsPerDay,5)
 ## Source: local data frame [5 x 2]
 ## 
 ##         date totalsteps
-## 1 2012-11-03      10571
-## 2 2012-11-07      12883
-## 3 2012-10-14      15098
-## 4 2012-11-23      21194
-## 5 2012-11-28      10183
+## 1 2012-10-24       8355
+## 2 2012-10-14      15098
+## 3 2012-11-20       4472
+## 4 2012-11-02      10600
+## 5 2012-11-22      20427
 ```
 As you can see, the number of steps each day has been calculated.
 
@@ -140,9 +145,10 @@ ggplot(stepsPerDay)+
 ```
 
 ![plot of chunk plotStepsPerDay](figure/plotStepsPerDay.png) 
-![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-1.png) 
+
 
 ### 3. Calculate and report the mean and median of the total number of steps taken per day
+
 Finally, we take the mean and median of that column to reveal the average number of steps each day
 
 ```r
@@ -188,7 +194,7 @@ ggplot()+
 
 ![plot of chunk plotStepsPerInterval](figure/plotStepsPerInterval.png) 
 
-![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2.png) 
+
 As can be seen, on average, there are almost no steps from midnight to 5:30 or so there's a morning peak a little before 9am, the rest of the day goes back and forth between about 25 and about 100 steps per interval until about 8pm, when the user begins to take fewer and fewer steps until midnight
 
 ### 2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
@@ -207,6 +213,7 @@ It looks like it is 8:35, or slightly before 9am as we can see on the graph.
 ## Imputing missing values
 
 ### 1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
+
 We saw this earlier.  But we can look at the summary of the original data again:
 
 ```r
@@ -308,7 +315,6 @@ In the summary, we can see that this new imputedData dataframe has all intervals
 
 ### 4. Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
 
-
 We now create a "stepsPerDay" data frame of the imputed Data
 
 ```r
@@ -328,7 +334,7 @@ ggplot(imputedStepsPerDay)+
 ```
 
 ![plot of chunk plotISPD](figure/plotISPD.png) 
-![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4.png) 
+
 
 Again, we can calculate the mean and median of the data, this time with the imputed data included.
 
@@ -363,7 +369,6 @@ processedData <- mutate(processedData,
                         weekend = as.factor(ifelse(dayOfWeek%in%c(1,7),"Weekend","Weekday")))
 ```
 
-
 ### 2. Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
 
 From there, we create a dataframe for the means by weekend or weekday. we also put in the graphing interval.
@@ -390,5 +395,5 @@ ggplot(typeOfDayData)+
 ```
 
 ![plot of chunk graphWeekendData](figure/graphWeekendData.png) 
-![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5.png) 
+
 It looks like on average, there's more activity on weekday early mornings from 5:30am until about 10am.  After that, the weekends are more volatile, but still generally higher than the weekdays.  The weekends also continue to have more steps later on in the evening than the weekdays.

@@ -7,10 +7,13 @@ output:
 # Step Analysis over a Two Month Period
 
 ## Synopsis
-This is an analysis of data collected from someone who walked a lot.
+
+An analysis of data collected from someone who walked a lot.
+
 Using a personal fitness device such as a Fitbit or Fuelband or Jawbone, the number of steps that they took was recorded at 5 minute intervals during October and November 2012.  A zipped copy of the data can be found [here](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip).  We know that there are three columns: steps, date, and interval, showing the number of steps, the day the measurement was taken, and the time interval the measurement was taken.
 
 ## Loading and preprocessing the data
+
 First, I'm adding the libraries needed to process the data.
 ```{r libraryLoad, message=FALSE, warning=FALSE}
 library(plyr)
@@ -21,6 +24,7 @@ library(ggplot2)
 
 
 ###1. Load the data (i.e., read.csv())
+
 Next, we bring in the file, which is unzipped and in the working directory. The data is in an unzipped file in the working directory. I specify that there is a header.
 ```{r getRawData, echo=TRUE}
 veryRawData <- read.csv("activity.csv", header=TRUE, na.strings="NA")
@@ -59,6 +63,7 @@ And we're able to begin answering the remainder of the questions.
 ## What is mean total number of steps taken per day?
 
 ### 1. Calculate the total number of steps taken per day
+
 To answer this, we're going to create a data frame that will consist of two columns, the date and the total number of steps taken that day.
 ```{r caculateStepsPerDay, echo=TRUE}
 stepsPerDay <- (summarise(group_by(processedData, date), sum(steps)))
@@ -84,6 +89,7 @@ dev.off()
 ```
 
 ### 3. Calculate and report the mean and median of the total number of steps taken per day
+
 Finally, we take the mean and median of that column to reveal the average number of steps each day
 ```{r stepsPerDayStats, echo=TRUE}
 mean(stepsPerDay$totalsteps)
@@ -129,6 +135,7 @@ It looks like it is 8:35, or slightly before 9am as we can see on the graph.
 ## Imputing missing values
 
 ### 1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
+
 We saw this earlier.  But we can look at the summary of the original data again:
 ```{r echo=TRUE}
 summary(veryRawData)
@@ -158,7 +165,6 @@ summary(imputedData)
 In the summary, we can see that this new imputedData dataframe has all intervals with missing data filled in as there are no NAs in the "interval" column.
 
 ### 4. Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
-
 
 We now create a "stepsPerDay" data frame of the imputed Data
 ```{r createISPD, echo=TRUE}
@@ -199,7 +205,6 @@ processedData <- mutate(processedData,
                         weekend = as.factor(ifelse(dayOfWeek%in%c(1,7),"Weekend","Weekday")))
 
 ``` 
-
 
 ### 2. Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
 
